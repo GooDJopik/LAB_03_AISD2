@@ -17,8 +17,10 @@ bool Graph<Vertex, Distance>::remove_vertex(const Vertex& v) {
     auto it = std::find(_vertices.begin(), _vertices.end(), v);
     if (it == _vertices.end()) return false;
 
+    // Удаляем вершину из списка вершин
     _vertices.erase(it);
 
+    // Удаляем все ребра, связанные с удаляемой вершиной
     _edges.erase(v);
     for (auto& [vertex, edges] : _edges) {
         edges.erase(std::remove_if(edges.begin(), edges.end(), [&](const Edge& e) { return e.to == v; }), edges.end());
@@ -73,3 +75,134 @@ bool Graph<Vertex, Distance>::has_edge(const Vertex& from, const Vertex& to) con
     }
     return false;
 }
+
+template<typename Vertex, typename Distance>
+std::pair<typename std::vector<Vertex>::iterator, typename std::vector<Vertex>::iterator> Graph<Vertex, Distance>::vertices() {
+    return { _vertices.begin(), _vertices.end() };
+}
+
+template<typename Vertex, typename Distance>
+std::pair<typename std::vector<Vertex>::iterator, typename std::vector<Vertex>::iterator> Graph<Vertex, Distance>::edges(const Vertex& v) {
+    return { exiting_edges(v).begin(), exiting_edges(v).end() };
+}
+
+template<typename Vertex, typename Distance>
+std::vector<typename Graph<Vertex, Distance>::Edge> Graph<Vertex, Distance>::exiting_edges(const Vertex& v) const {
+    if (!has_vertex(v)) throw std::invalid_argument("[exiting_edges] there is no such vertex in the graph");
+
+    return _edges.at(v);
+}
+
+template<typename Vertex, typename Distance>
+std::vector<typename Graph<Vertex, Distance>::Edge> Graph<Vertex, Distance>::incoming_edges(const Vertex& v) const {
+    if (!has_vertex(v)) throw std::invalid_argument("[incoming_edges] there is no such vertex in the graph");
+    std::vector<Edge> edges;
+    for (auto& vertex : _vertices) {
+        for (auto& edge : _edges.at(vertex))
+            if (edge.to == v) edges.push_back(edge);
+    }
+
+    return edges;
+}
+
+template<typename Vertex, typename Distance>
+size_t Graph<Vertex, Distance>::order() const {
+    return _vertices.size();
+}
+
+template<typename Vertex, typename Distance>
+size_t Graph<Vertex, Distance>::degree(const Vertex& v) const {
+    if (!has_vertex(v)) throw std::invalid_argument("[degree] there is no such vertex in the graph");
+
+    return incoming_edges(v).size() + exiting_edges(v).size();
+}
+
+template<typename Vertex, typename Distance>
+std::vector<Vertex> Graph<Vertex, Distance>::dfs(const Vertex& start_vertex) const { // обход в глубину
+    if (!has_vertex(start_vertex)) throw std::invalid_argument("[dfs] there is no such vertex in the graph");
+
+    std::vector<Vertex> result; // посещенные вершины
+    std::unordered_map<Vertex, Color> colors;
+
+    for (const auto& vertex : _vertices) {
+        colors[vertex] = Color::White;
+    }
+
+    std::stack<Vertex> stack;
+    stack.push(start_vertex);
+    colors[start_vertex] = Color::Gray;
+
+    while (!stack.empty()) {
+        Vertex current_vertex = stack.top();
+        stack.pop();
+
+        result.push_back(current_vertex);
+        colors[current_vertex] = Color::Black;
+
+        for (auto& edge : _edges.at(current_vertex)) {
+            if (colors[edge.to] == Color::White) {
+                stack.push(edge.to);
+                colors[edge.to] = Color::Gray;
+            }
+        }
+    }
+    return result;
+}
+
+template<typename Vertex, typename Distance>
+std::vector<typename Graph<Vertex, Distance>::Edge> Graph<Vertex, Distance>::shortest_path(const Vertex& from, const Vertex& to) const {
+    if (!has_vertex(from) || !has_vertex(to))
+        return {};
+
+    std::unordered_map<Vertex, Distance> distances; // расстояния от начальной вершины from до каждой вершины
+    std::unordered_map<Vertex, Vertex> prev; // предыдущая вершина в кратчайшем пути для каждой вершины
+
+    for (const auto& vertex : _vertices)
+        distances[vertex] = std::numeric_limits<Distance>::max();
+    distances[from] = 0;
+
+    for (size_t i = 0; i < _vertices.size() - 1; ++i) {
+        for (const auto& vertex : _vertices) {
+            for (const auto& edge : _edges.at(vertex)) {
+                if (distances[edge.from] + edge.distance < distances[edge.to]) {
+                    distances[edge.to] = distances[edge.from] + edge.distance;
+                    prev[edge.to] = edge.from;
+                }
+            }
+        }
+    }
+
+    // Проверка на отрицательные циклы
+    for (const auto& vertex : _vertices) {
+        for (const auto& edge : _edges.at(vertex)) {
+            if (distances[edge.from] + edge.distance < distances[edge.to]) {
+                throw std::runtime_error("The graph contains negative cycles");
+            }
+        }
+    }
+
+    std::vector<Edge> path;
+    Vertex current = to;
+    while (current != from) {
+        for (const auto& edge : _edges.at(prev[current])) {
+            if (edge.to == current) {
+                path.push_back(edge);
+                break;
+            }
+        }
+        current = prev[current];
+    }
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
+template<typename Vertex, typename Distance>
+Distance Graph<Vertex, Distance>::length_shortest_path(const Vertex& start, const Vertex& end) const {
+    std::vector<Edge> edges = shortest_path(start, end);
+    Distance len = 0;
+    for (const auto& edge : edges) {
+        len += edge.distance;
+    }
+    return len;
+}
+

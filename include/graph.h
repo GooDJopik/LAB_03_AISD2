@@ -28,6 +28,18 @@ public:
     bool remove_edge(const Edge& e);
     bool remove_edge(const Vertex& from, const Vertex& to);
 
+    std::pair<typename std::vector<Vertex>::iterator, typename std::vector<Vertex>::iterator> vertices();
+    std::pair<typename std::vector<Vertex>::iterator, typename std::vector<Vertex>::iterator> edges(const Vertex& v);
+    std::vector<Edge> exiting_edges(const Vertex& v) const;
+    std::vector<Edge> incoming_edges(const Vertex& v) const;
+
+    size_t order() const;
+    size_t degree(const Vertex& v) const;
+
+    std::vector<Edge> shortest_path(const Vertex& start, const Vertex& end) const;
+    std::vector<Vertex> dfs(const Vertex& start_vertex) const;
+    Distance length_shortest_path(const Vertex& start, const Vertex& end) const;
+
 private:
     std::vector<Vertex> _vertices;
     std::unordered_map<Vertex, std::vector<Edge>> _edges;
