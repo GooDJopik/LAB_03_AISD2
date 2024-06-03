@@ -1,6 +1,6 @@
 #include "../include/graph.h"
 
-template<typename Vertex, typename Distance>    
+template<typename Vertex, typename Distance>
 bool Graph<Vertex, Distance>::has_vertex(const Vertex& v) const {
     return std::find(_vertices.begin(), _vertices.end(), v) != _vertices.end();
 }
@@ -206,3 +206,48 @@ Distance Graph<Vertex, Distance>::length_shortest_path(const Vertex& start, cons
     return len;
 }
 
+template<typename Vertex, typename Distance>
+void Graph<Vertex, Distance>::print_vertices() const {
+    std::cout << "Vertices: [ ";
+    for (const Vertex& vertex : _vertices) {
+        if (vertex != _vertices.back()) std::cout << vertex << ", ";
+        else std::cout << vertex << " ]";
+    }
+}
+
+template<typename Vertex, typename Distance>
+void Graph<Vertex, Distance>::print_edges() const {
+    std::cout << "Edges: " << std::endl;
+    for (const Vertex& vertex : _vertices) {
+        for (const Edge& edge : _edges.at(vertex)) {
+            std::cout << edge.from << " -> " << edge.to << "(" << edge.distance << ")" << std::endl;
+        }
+    }
+}
+
+template<typename Vertex, typename Distance>
+Vertex Graph<Vertex, Distance>::find_farthest_vertex() {
+    Vertex farthest_vertex{};//Вершина, наиболее удалённая от других вершин.
+    Distance max_avg_distance = 0;//Максимальное среднее расстояние от какой-либо вершины до её соседей.
+
+    for (const auto& vertex : _vertices) {
+        // Вычисляем среднее расстояние от текущей вершины до её соседей
+        Distance avg_distance = 0;
+        size_t num_neighbors = 0;//Количество соседей
+        for (const auto& edge : exiting_edges(vertex)) {
+            avg_distance += length_shortest_path(vertex, edge.to);
+            num_neighbors++;
+        }
+        if (num_neighbors > 0) {
+            avg_distance /= num_neighbors;
+        }
+
+        // Обновляем максимальное среднее расстояние и запоминаем текущую вершину
+        if (avg_distance > max_avg_distance) {
+            max_avg_distance = avg_distance;
+            farthest_vertex = vertex;
+        }
+    }
+
+    return farthest_vertex;
+}

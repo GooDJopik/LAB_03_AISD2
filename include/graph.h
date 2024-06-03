@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+enum class Color { White, Gray, Black };
+
 template<typename Vertex, typename Distance = double>
 class Graph {
 public:
@@ -39,6 +41,10 @@ public:
     std::vector<Edge> shortest_path(const Vertex& start, const Vertex& end) const;
     std::vector<Vertex> dfs(const Vertex& start_vertex) const;
     Distance length_shortest_path(const Vertex& start, const Vertex& end) const;
+    Vertex find_farthest_vertex();
+
+    void print_vertices() const;
+    void print_edges() const;
 
 private:
     std::vector<Vertex> _vertices;
