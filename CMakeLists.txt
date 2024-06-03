@@ -14,4 +14,4 @@ if(MSVC)
     endif()
 endif()
 
-add_executable(main "src/main.cpp" "include/graph.h")
+add_executable(main "src/main.cpp" "include/graph.cc" "include/graph.h")
