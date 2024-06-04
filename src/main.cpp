@@ -1,7 +1,11 @@
 #include "../include/graph.h"
 #include "../include/graph.cc"
+#include <locale>
 
 int main() {
+
+    setlocale(LC_ALL, "rus");
+
     // Создание экземпляра графа
     Graph<std::string, double> graph;
 
@@ -15,74 +19,89 @@ int main() {
 
     // Добавление ребер
     graph.add_edge("A", "B", 4.5);
-    graph.add_edge("A", "C", 1.5);
-    graph.add_edge("B", "C", 3.0);
+    graph.add_edge("A", "F", 1.5);
+    graph.add_edge("D", "E", 5.5);
     graph.add_edge("C", "D", 4.5);
-    graph.add_edge("D", "E", 5.0);
-    graph.add_edge("E", "A", 1.0);
-    graph.add_edge("F", "B", 3.5);
+    graph.add_edge("D", "C", 4.5);
+    graph.add_edge("B", "E", 5.0);
+    graph.add_edge("D", "B", 1.0);
+    graph.add_edge("F", "D", 5.5);
 
-    graph.print_vertices();
-
-    // Удаление вершины
-    if (graph.remove_vertex("B")) {
-        std::cout << "\n\nVertex B has been removed" << std::endl;
-    }
-    graph.print_vertices();
-
-    // Удаление вершины
-    if (graph.remove_vertex("F")) {
-        std::cout << "\n\nVertex F has been removed" << std::endl;
-    }
     graph.print_vertices();
 
     std::cout << std::endl;
     // Вывод списка ребер
     graph.print_edges();
 
+    // Выполнение обхода в глубину, начиная с вершины "A"
+    std::vector<std::string> dfs_result = graph.dfs("A");
+
+    // Вывод результата обхода в глубину
+    std::cout << "Поиск по глубине (начиная с A): " << std::endl;
+    for (const auto& vertex : dfs_result) {
+        std::cout << vertex << " ";
+    }
+    std::cout << std::endl;
+
+    // Поиск кратчайшего пути
+    std::vector<typename Graph<std::string, double>::Edge> path = graph.shortest_path("A", "E");
+    std::cout << "Кратчайший путь из пункта А в пункт Е: ";
+    for (const auto& edge : path) {
+        std::cout << edge.from << " -> " << edge.to << " (" << edge.distance << ") ";
+    }
+    std::cout << std::endl;
+
     // Проверка наличия ребра
     if (graph.has_edge("A", "B")) {
-        std::cout << "Edge (A, B) exists" << std::endl;
+        std::cout << "Ребро (A, B) существует" << std::endl;
     }
     else {
-        std::cout << "Edge (A, B) does not exist" << std::endl;
+        std::cout << "Ребро (A, B) не существует" << std::endl;
     }
 
     // Получение списка исходящих ребер из вершины
-    std::cout << "Edges exiting from A: ";
+    std::cout << "Ребра, выходящие из А: ";
     for (const auto& edge : graph.exiting_edges("A")) {
         std::cout << "(" << edge.from << ", " << edge.to << ", " << edge.distance << ") ";
     }
     std::cout << std::endl;
 
     // Получение списка входящих ребер в вершину
-    std::cout << "Edges incoming to D: ";
+    std::cout << "Ребра, входящие в D: ";
     for (const auto& edge : graph.incoming_edges("D")) {
         std::cout << "(" << edge.from << ", " << edge.to << ", " << edge.distance << ") ";
     }
     std::cout << std::endl;
 
-    // Удаление ребра
-    graph.remove_edge("E", "A");
-    std::cout << "Edge (E, A) has been removed" << std::endl;
+    if (graph.remove_vertex("B")) {
+        std::cout << "\n\nВершина B была удалена" << std::endl;
+    }
+    graph.print_vertices();
 
-    // Получение количества вершин
-    std::cout << "Order of the graph: " << graph.order() << std::endl;
+    if (graph.remove_vertex("F")) {
+        std::cout << "\n\nВершина F была удалена" << std::endl;
+    }
+    graph.print_vertices();
 
-    // Получение степени вершины
-    std::cout << "Degree of vertex A: " << graph.degree("A") << std::endl;
+    std::cout << std::endl;
+    graph.print_edges();
 
-    // Создание экземпляра графа
+    graph.remove_edge("C", "D");
+    std::cout << "Ребро (C, D) было удалено" << std::endl;
+
+    std::cout << "Кол-во вершин: " << graph.order() << std::endl;
+
+    std::cout << "Степень вершины A: " << graph.degree("A") << std::endl;
+
+
     Graph<std::string, double> graph2;
 
-    // Добавление вершин
     graph2.add_vertex("A");
     graph2.add_vertex("B");
     graph2.add_vertex("C");
     graph2.add_vertex("D");
     graph2.add_vertex("E");
 
-    // Добавление ребер
     graph2.add_edge("A", "B", 5.0);
     graph2.add_edge("A", "C", 3.0);
     graph2.add_edge("B", "D", 2.0);
@@ -90,24 +109,14 @@ int main() {
     graph2.add_edge("C", "D", 6.0);
     graph2.add_edge("D", "E", 1.0);
 
-    // Вывод списка вершин
     graph2.print_vertices();
-
     std::cout << std::endl;
-    // Вывод списка ребер
+
     graph2.print_edges();
-
-    // Поиск кратчайшего пути
-    std::vector<typename Graph<std::string, double>::Edge> path = graph2.shortest_path("A", "E");
-    std::cout << "Shortest path from A to E: ";
-    for (const auto& edge : path) {
-        std::cout << edge.from << " -> " << edge.to << " (" << edge.distance << ") ";
-    }
-    std::cout << std::endl;
 
     // Определение самой удаленной вершины
     std::string farthest_vertex = graph2.find_farthest_vertex();
-    std::cout << "The farthest vertex is: " << farthest_vertex << std::endl;
+    std::cout << "Самая дальняя вершина - это: " << farthest_vertex << std::endl;
 
     return 0;
 }

@@ -176,7 +176,7 @@ std::vector<typename Graph<Vertex, Distance>::Edge> Graph<Vertex, Distance>::sho
     for (const auto& vertex : _vertices) {
         for (const auto& edge : _edges.at(vertex)) {
             if (distances[edge.from] + edge.distance < distances[edge.to]) {
-                throw std::runtime_error("The graph contains negative cycles");
+                throw std::runtime_error("Negative cycles");
             }
         }
     }
